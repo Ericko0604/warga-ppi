@@ -25,6 +25,23 @@ Route::get('/upload/{token}', [ResidentUploadController::class, 'show'])->name('
 Route::post('/upload/{token}', [ResidentUploadController::class, 'store'])->name('resident.upload.store');
 Route::get('/upload/{token}/sukses', [ResidentUploadController::class, 'success'])->name('resident.upload.success');
 
+// Web Database Setup / Migration Route
+Route::match(['GET', 'POST'], '/setup-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+
+        return response("<h2>✅ Database Berhasil Diinisialisasi & Dimigrasi!</h2><pre>{$migrateOutput}\n{$seedOutput}</pre><br><a href='/'>👉 Menuju Beranda</a>", 200)
+            ->header('Content-Type', 'text/html');
+    } catch (\Exception $e) {
+        return response("<h2>❌ Gagal Migrasi Database:</h2><pre>" . $e->getMessage() . "</pre><br><a href='/'>Kembali</a>", 500)
+            ->header('Content-Type', 'text/html');
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Admin Auth & Management Routes
